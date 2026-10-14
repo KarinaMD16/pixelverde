@@ -1,0 +1,5 @@
+.env
+*.key
+*.sql
+*.sql.gz
+respaldos/
