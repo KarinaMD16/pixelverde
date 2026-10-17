@@ -1,1 +1,20 @@
+# Todo lo de texto se guarda con saltos de línea de Linux (LF).
+# Evita que un script editado en Windows llegue al servidor con CRLF y falle
+# con errores como "/bin/bash^M: bad interpreter".
 * text=auto eol=lf
+
+*.sh         text eol=lf
+*.yml        text eol=lf
+*.yaml       text eol=lf
+*.conf       text eol=lf
+*.php        text eol=lf
+Dockerfile   text eol=lf
+.env.example text eol=lf
+
+# Binarios
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.pdf  binary
+*.docx binary

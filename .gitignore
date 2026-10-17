@@ -1,5 +1,20 @@
+# Claves reales
 .env
-*.key
+
+# Respaldos y volcados de base de datos (van en /respaldos del servidor o en Drive)
 *.sql
 *.sql.gz
 respaldos/
+
+# Certificados y llaves privadas 
+*.key
+*.pem
+*.crt
+
+# Basura de editores y sistemas
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
