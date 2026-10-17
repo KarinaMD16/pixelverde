@@ -1,0 +1,114 @@
+# =============================================================================
+#  Estudio Pixel Verde — TYPO3 en contenedores. Nodos
+#  Dueña de este archivo: Karina (Contenedores y reproducibilidad)
+#
+#  Uso:
+#     cp .env.example .env      # y llenar las claves
+#     docker compose up -d --build
+#
+#  Versiones fijas en todo (nunca "latest"): ver docs/decisiones.md
+# =============================================================================
+
+name: pixelverde
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # Base de datos
+  # ---------------------------------------------------------------------------
+  db:
+    image: mariadb:10.11
+    container_name: pixelverde-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Falta DB_ROOT_PASSWORD en .env}
+      MARIADB_DATABASE: ${DB_NAME:?Falta DB_NAME en .env}
+      MARIADB_USER: ${DB_USER:?Falta DB_USER en .env}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - datos_db:/var/lib/mysql
+    # El puerto 3306 NO se publica: solo el contenedor typo3 llega a la base,
+    # por la red interna de Docker (igual que en la Sesión 12).
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - interna
+
+  # ---------------------------------------------------------------------------
+  # Aplicación TYPO3 (PHP + Apache dentro del contenedor)
+  # ---------------------------------------------------------------------------
+  typo3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pixelverde/typo3:14.3.9
+    container_name: pixelverde-typo3
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Conexión a la base (los lee el comando "typo3 setup" en el primer arranque)
+      TYPO3_DB_DRIVER: mysqli
+      TYPO3_DB_HOST: db
+      TYPO3_DB_PORT: "3306"
+      TYPO3_DB_DBNAME: ${DB_NAME}
+      TYPO3_DB_USERNAME: ${DB_USER}
+      TYPO3_DB_PASSWORD: ${DB_PASSWORD}
+      # Instalación automática (solo corre si TYPO3 todavía no está instalado)
+      TYPO3_SETUP_ADMIN_USERNAME: ${TYPO3_ADMIN_USER:?Falta TYPO3_ADMIN_USER en .env}
+      TYPO3_SETUP_ADMIN_PASSWORD: ${TYPO3_ADMIN_PASSWORD:?Falta TYPO3_ADMIN_PASSWORD en .env}
+      TYPO3_SETUP_ADMIN_EMAIL: ${TYPO3_ADMIN_EMAIL:-admin@pixelverde.internal}
+      TYPO3_PROJECT_NAME: ${TYPO3_PROJECT_NAME:-Estudio Pixel Verde}
+      TYPO3_SETUP_CREATE_SITE: ${TYPO3_SITE_URL:-https://pixelverde.internal/}
+      TYPO3_SETUP_DISTRIBUTION: ${TYPO3_DISTRIBUTION:-}
+      TYPO3_SERVER_TYPE: apache
+      TYPO3_CONTEXT: ${TYPO3_CONTEXT:-Production}
+      # Dominio y proxy inverso (los usa config/additional.php — Integrante 2)
+      TYPO3_TRUSTED_HOSTS: ${TYPO3_TRUSTED_HOSTS:-(pixelverde\.internal|localhost|127\.0\.0\.1|192\.168\.50\.1)(:[0-9]+)?}
+      TYPO3_REVERSE_PROXY_IP: ${TYPO3_REVERSE_PROXY_IP:-172.30.0.1}
+      TYPO3_REVERSE_PROXY_SSL: ${TYPO3_REVERSE_PROXY_SSL:-}
+    ports:
+      # Por defecto solo escucha en el propio servidor (127.0.0.1).
+      # El Apache del servidor (puertos 80/443) le hace de proxy inverso.
+      - "${TYPO3_BIND_IP:-127.0.0.1}:${TYPO3_HTTP_PORT:-8080}:80"
+    volumes:
+      - datos_fileadmin:/var/www/html/fileadmin     # imágenes y archivos del portafolio
+      - datos_typo3conf:/var/www/html/typo3conf     # settings.php, sitios, extensiones
+      - datos_typo3temp:/var/www/html/typo3temp     # caché, logs y temporales
+    networks:
+      - interna
+
+# -----------------------------------------------------------------------------
+# Volúmenes CON NOMBRE: sobreviven a "docker compose down"
+# y a recrear los contenedores. Se usan en los respaldos
+# -----------------------------------------------------------------------------
+volumes:
+  datos_db:
+    name: pixelverde_datos_db
+  datos_fileadmin:
+    name: pixelverde_datos_fileadmin
+  datos_typo3conf:
+    name: pixelverde_datos_typo3conf
+  datos_typo3temp:
+    name: pixelverde_datos_typo3temp
+
+# -----------------------------------------------------------------------------
+# Red con subred fija: así la puerta de enlace (172.30.0.1) siempre es la misma
+# y TYPO3 sabe que las peticiones que llegan desde ahí vienen del proxy Apache.
+# No choca con la Red interna del laboratorio (192.168.50.0/24).
+# -----------------------------------------------------------------------------
+networks:
+  interna:
+    name: pixelverde_interna
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
