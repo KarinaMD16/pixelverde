@@ -1,0 +1,2 @@
+# Crontab de root (sudo crontab -l). Respaldo diario a las 2:00 a. m. (hora de Costa Rica).
+0 2 * * * /usr/local/sbin/respaldo-pixelverde.sh >> /var/log/respaldo-pixelverde.log 2>&1
