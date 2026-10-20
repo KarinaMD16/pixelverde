@@ -1,0 +1,19 @@
+; =============================================================================
+;  Zona pixelverde.internal  —  Integrante 2 (DNS y HTTPS)
+;  Se copia a /etc/bind/db.pixelverde.internal en el servidor.
+;  IMPORTANTE: cada vez que se edite este archivo, subir el serial (YYYYMMDDnn).
+; =============================================================================
+$TTL    604800
+@       IN      SOA     ns1.pixelverde.internal. admin.pixelverde.internal. (
+                        2026102001      ; Serial
+                        604800          ; Refresh
+                        86400           ; Retry
+                        2419200         ; Expire
+                        604800 )        ; Negative Cache TTL
+
+; Servidor de nombres de la zona
+@       IN      NS      ns1.pixelverde.internal.
+
+; Registros A: todo apunta al servidor oficial (IP fija en intnet)
+ns1     IN      A       192.168.50.1
+@       IN      A       192.168.50.1

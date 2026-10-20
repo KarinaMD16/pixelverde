@@ -1,0 +1,6 @@
+// Bloque que se AGREGA al final de /etc/bind/named.conf.local en el servidor
+// (no reemplaza el archivo: solo se añade). Ver servidor/bind/PASOS.md.
+zone "pixelverde.internal" {
+    type master;
+    file "/etc/bind/db.pixelverde.internal";
+};
