@@ -1,0 +1,40 @@
+# =============================================================================
+#  BONO — Alta disponibilidad: una segunda copia de TYPO3 (typo3-2)
+#
+#  Se agrega ENCIMA de docker-compose.yml, sin cambiarlo. Se activa con
+#  esta línea en el .env:
+#     COMPOSE_FILE=docker-compose.yml:docker-compose.ha.yml
+#  y se desactiva borrando esa línea y corriendo
+#     docker compose up -d --remove-orphans
+#
+#  typo3-2 usa la MISMA imagen, la MISMA base y los MISMOS volúmenes que
+#  typo3: los dos sirven el mismo sitio. Solo cambia el nombre y el puerto.
+#  El Apache del servidor reparte las visitas entre 8080 y 8081
+#  (servidor/apache/pixelverde-ssl-ha.conf).
+# =============================================================================
+
+services:
+
+  # El primer TYPO3 avisa cuando ya responde. Así typo3-2 no arranca antes de
+  # que termine la instalación (si arrancaran juntos en una máquina nueva,
+  # los dos intentarían instalar TYPO3 a la vez sobre la misma base).
+  typo3:
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1/typo3/"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 120s
+
+  typo3-2:
+    extends:
+      file: docker-compose.yml
+      service: typo3                       # copia todo: imagen, variables, volúmenes, red
+    container_name: pixelverde-typo3-2
+    depends_on:
+      db:
+        condition: service_healthy
+      typo3:
+        condition: service_healthy
+    ports: !override                       # reemplaza el 8080 heredado
+      - "${TYPO3_BIND_IP:-127.0.0.1}:${TYPO3_HTTP_PORT_2:-8081}:80"
