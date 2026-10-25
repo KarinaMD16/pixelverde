@@ -9,10 +9,11 @@ Este archivo tiene dos partes:
 
 | Si eres… | Lee |
 |---|---|
-| Cualquier integrante, primera vez | Secciones [0](#0-antes-de-empezar-una-sola-vez), [1](#1-clonar-el-repositorio) y [2](#2-cada-vez-que-te-sentás-a-trabajar) |
-| Integrante 2, 3, 4 o 5 | Además, tu parte de la [sección 3](#3-qué-necesitás-de-lo-mío-según-tu-rol) |
+| Cualquier integrante, primera vez | Secciones [0](#0-antes-de-empezar-una-sola-vez), [1](#1-clonar-el-repositorio) y [2](#2-cada-vez-que-vas-a-trabajar) |
+| Integrante 2, 3, 4 o 5 | Además, tu parte de la [sección 3](#3-qué-necesitas-de-lo-mío-según-tu-rol) |
 | Quien necesite TYPO3 en su compu | [Sección 4](#4-levantar-typo3-en-tu-compu) |
 | Alguien con un error | [Sección 5](#5-si-algo-sale-mal) |
+| Quien aplique cambios en el servidor oficial | [Sección 8.8](#88-aplicar-las-partes-del-grupo-en-el-servidor-oficial-servidor) |
 
 
 ---
@@ -103,12 +104,19 @@ Ubica tu carpeta en la tabla de arriba: ahí vas a trabajar.
 
 ## 2. Cada vez que vas a trabajar
 
-**1. Traer lo último que subieron los demás (siempre primero):**
+**Nadie sube directo a `main`.** Cada quien trabaja en una **rama** y la une a `main` con un *Pull Request* (PR) en GitHub. Así `main` siempre tiene la versión revisada, que es la que se aplica en el servidor oficial.
+
+**1. Traer lo último y crear tu rama (siempre primero):**
 
 ```bash
 cd pixelverde
+git switch main
 git pull
+git switch -c elein-dns                      # nombre-tema
+git branch                                   # el * debe estar en tu rama
 ```
+
+Si la rama ya existe (porque la creaste otro día), en vez de `-c`: `git switch elein-dns`.
 
 **2. Trabajar solo en tus archivos.** Por ejemplo, el Integrante 2 edita `servidor/bind/PASOS.md` o crea `servidor/bind/db.pixelverde.internal`.
 
@@ -119,20 +127,21 @@ git status        # lista de archivos modificados o nuevos
 git diff          # qué líneas cambiaron
 ```
 
-**4. Subirlo cuando algo funciona:**
+**4. Guardar y subir tu rama cuando algo funciona:**
 
 ```bash
 git add servidor/bind/                       # tu carpeta o tus archivos concretos
 git commit -m "DNS: zona pixelverde.internal y archivo de zona"
-git push
+git push -u origin elein-dns                 # la primera vez; después basta con git push
 ```
 
-Buenas costumbres:
+**5. Unirla a `main`:** en GitHub aparece **Compare & pull request** → **Create pull request**. Karina lo revisa y le da **Merge**. Después, en tu compu:
 
-- Mensajes de commit que digan **qué** hiciste, no "cambios" o "asdf".
-- Sube seguido, en pasos chicos. Es más fácil arreglar un problema pequeño.
-- En tu `PASOS.md` anota **los comandos exactos** que corriste y los errores con su solución. Puedes seguir el formato de esta guía.
-- **Nunca** subas claves, el archivo `.env`, certificados (`.crt`, `.key`) ni respaldos (`.sql`). El `.gitignore` ya los bloquea pero igual revisa `git status` antes de cada commit.
+```bash
+git switch main
+git pull
+git branch -d elein-dns                      # borrar la rama ya unida
+```
 
 ---
 
@@ -308,8 +317,12 @@ docker compose up -d       # vuelve a encender; no reinstala
 |---|---|
 | `! [rejected] main -> main (fetch first)` al hacer `push` | Alguien subió algo antes. `git pull --rebase` y después `git push`. |
 | `CONFLICT (content): Merge conflict in archivo` | Abrí el archivo, buscá las marcas `<<<<<<<`, `=======` y `>>>>>>>`, dejá el texto correcto y borrá las marcas. Después `git add archivo` y `git rebase --continue`. Si te perdés, `git rebase --abort` y avisá. |
-| `Permission denied (publickey)` | Tu llave SSH no está en GitHub. Repetí la sección 0.4. |
-| `remote: Permission to ... denied` / error 403 | No aceptaste la invitación de colaboradora/or (sección 0.1). |
+| `Permission denied (publickey)` | Tu llave SSH no está en GitHub. Repetí la sección 0.3. |
+| `remote: Permission to ... denied` / error 403 | No aceptaste la invitación de colaborador/a del repo (llega al correo de tu cuenta de GitHub). |
+| `Your local changes to the following files would be overwritten by merge` al hacer `pull` | Hay cambios sin subir en esa copia. **No los borres todavía**: guardalos en una rama (`git switch -c cambios-locales`, `git add -A`, `git commit -m "..."`), volvé con `git switch main` y repetí `git pull`. Ver error 12. |
+| Hice cambios estando en `main` | Antes del commit: `git switch -c mi-rama` se los lleva a una rama nueva. |
+| `Connection reset by ... port 22` o `Connection timed out` al hacer `pull`/`push` | La red bloquea el puerto 22 (SSH). Usá SSH por el 443: ver error 13. Con el repo público, para solo bajar cambios también sirve `git pull https://github.com/KarinaMD16/pixelverde.git main`. |
+| `Could not resolve hostname github.com` | El DNS no resuelve Internet (pasa al cambiar de wifi). Ver error 13. |
 | `fatal: not a git repository` | No estás dentro de la carpeta. `cd pixelverde`. |
 | `fatal: pathspec 'X' did not match any files` | El archivo no existe o el nombre está mal (mayúsculas incluidas). Revisá con `ls`. |
 | Quiero deshacer cambios de un archivo que **no** subí | `git restore archivo` (vuelve a la última versión subida). |
@@ -326,7 +339,7 @@ docker compose up -d       # vuelve a encender; no reinstala
 | `typo3` muestra `ERROR: 'typo3 setup' falló` en los logs | Casi siempre es la clave del admin, que no cumple la política. Cambiala en `.env` y empezá de cero: `docker compose down -v` y `docker compose up -d`. |
 | `address already in use` en el 8080 | Otro programa usa el puerto. Cambiá `TYPO3_HTTP_PORT=8081` en `.env` y `docker compose up -d`. |
 | `Trusted host` error en el navegador | Entraste con un nombre o IP que no está en `TYPO3_TRUSTED_HOSTS`. Agregalo en `.env` y `docker compose up -d`. |
-| La portada da 404 por `localhost` o `pixelverde.internal` | Normal hasta que el Integrante 2 tenga HTTPS. El backend `/typo3/` sí funciona. |
+| La portada da 404 por `localhost` o `pixelverde.internal` | Por `localhost` es normal (el sitio se creó para `pixelverde.internal`). Por `https://pixelverde.internal`, falta `TYPO3_REVERSE_PROXY_SSL=172.30.0.1` en el `.env` (sección 8.8, paso 5). El backend `/typo3/` sí funciona. |
 | `Access denied for user 'root'` al entrar a la base | Usá `docker exec pixelverde-db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD"'`. |
 | No sé qué pasa | Mirá los logs: `docker compose logs --tail 50 typo3` y `docker compose logs --tail 50 db`. |
 
@@ -350,11 +363,13 @@ docker compose up -d --build
 |---|---|
 | Servidor oficial | VM `PIXEL VERDE`, Ubuntu Server 26.04 LTS, usuario `nodos`, servidor `pixelverde` |
 | Red base | IP fija `192.168.50.1/24` en `enp0s8`, DHCP (`.100`–`.130`), reenvío permanente, NAT con iptables. Configuración real guardada en `servidor/red/` |
-| DNS base | BIND9 instalado como resolvedor (la zona la agrega el Integrante 2) |
+| DNS base | BIND9 instalado como resolvedor, con *forwarders* `8.8.8.8` y `1.1.1.1` (la zona la agrega el Integrante 2) |
 | Docker | Docker Engine + Compose instalados con el script oficial |
 | Contenedores | TYPO3 14.3.9 LTS (PHP 8.4 + Apache, `Dockerfile` propio con verificación SHA256) + MariaDB 10.11 |
 | Datos | 4 volúmenes con nombre: base, `fileadmin`, `typo3conf`, `typo3temp` |
 | Instalación | Automática en el primer arranque (`typo3 setup`), con el dominio `https://pixelverde.internal/` |
+| Ajustes para las partes del grupo | Zona horaria `America/Costa_Rica` (para el cron de respaldos) y segundo disco virtual de 5 GB para `/respaldos` |
+| Integración | DNS + HTTPS (Integrante 2) y FTP + respaldos (Integrante 4) aplicados en el servidor oficial desde el repo, en el orden de la sección 8.8 |
 | Seguridad | Claves solo en `.env` (no se sube); base sin puerto publicado; TYPO3 solo en `127.0.0.1:8080` |
 
 La justificación de cada versión y decisión está en `docs/decisiones.md`.
@@ -383,6 +398,7 @@ Solo si la VM se daña o hay que rehacerla.
 | Nombre | `PIXEL VERDE` |
 | ISO | Ubuntu Server 26.04 LTS |
 | RAM / CPU / Disco | 4096 MB / 2 / 25 GB |
+| Disco 2 | `respaldos.vdi`, VDI, dinámico, 5 GB (para `/respaldos`, ver 8.8) |
 | Adaptador 1 | NAT |
 | Adaptador 2 | Red interna `intnet` |
 
@@ -427,9 +443,14 @@ BIND9 como resolvedor (Mint resuelve Internet por `192.168.50.1`):
 
 ```bash
 sudo apt install -y bind9 bind9-utils dnsutils
+sudo cp servidor/red/named.conf.options /etc/bind/named.conf.options   # forwarders 8.8.8.8 y 1.1.1.1
+sudo named-checkconf                         # no debe mostrar nada
 sudo systemctl enable --now named
+sudo systemctl restart named
 dig @192.168.50.1 google.com +short
 ```
+
+Los *forwarders* hacen que BIND le pregunte a `8.8.8.8` y `1.1.1.1` en vez de ir a los servidores raíz. Sin eso, en algunas redes wifi el servidor y Mint se quedan sin resolver Internet (ver error 13).
 
 DHCP (rango `.100`–`.130`, gateway y DNS = `192.168.50.1`):
 
@@ -501,6 +522,84 @@ ssh -T git@github.com                               # "Hi <usuario>! You've succ
 git remote set-url origin git@github.com:KarinaMD16/pixelverde.git
 ```
 
+### 8.8 Aplicar las partes del grupo en el servidor oficial [Servidor]
+
+Cada parte tiene sus comandos completos en su `PASOS.md`. Aquí va **el orden** en que se aplican y lo que le toca al servidor oficial. Se aplica siempre desde `main`, después de unir los PR.
+
+| Paso | Qué | Dónde están los comandos | Dueño |
+|---|---|---|---|
+| 1 | Segundo disco en VirtualBox | Abajo | Karina |
+| 2 | Traer el repo | Abajo | Karina |
+| 3 | Zona horaria | Abajo | Karina (lo pide el Integrante 4) |
+| 4 | DNS `pixelverde.internal` | `servidor/bind/PASOS.md`, secciones 3 y 4 | Integrante 2 |
+| 5 | Apache HTTPS + proxy, y `.env` con `TYPO3_REVERSE_PROXY_SSL` | `servidor/apache/PASOS.md`, secciones 2 a 5 | Integrante 2 + Karina (`.env`) |
+| 6 | FTP | `servidor/vsftpd/PASOS.md`, sección 3 | Integrante 4 |
+| 7 | `/respaldos`, script y cron | `servidor/respaldo/PASOS.md`, secciones 4 a 6 | Integrante 4 |
+| 8 | Comprobar todo, reiniciar y snapshot | Abajo | Todos |
+
+El disco va primero porque es el único paso que obliga a apagar la VM.
+
+**1. Segundo disco [PC].** Con la VM apagada (`sudo poweroff`): *Configuración → Almacenamiento → Controlador: SATA →* icono de **disco duro** con `+` (no el de disco óptico, que abre el "Creador VISO") *→ Crear*. Nombre `respaldos.vdi`, **VDI**, sin marcar *Reservar completamente*, **5 GB** → *Terminar* → seleccionarlo → *Elegir*. Bajo "Controlador: SATA" deben quedar `PIXEL VERDE.vdi` y `respaldos.vdi`. Encender la VM:
+
+```bash
+lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS   # un disco de 5G sin particiones (sdb)
+```
+
+Si el disco nuevo no se llama `sdb`, cambiar el nombre en los comandos del Integrante 4 **antes** de formatear.
+
+**2. Traer el repo:**
+
+```bash
+cd ~/pixelverde
+git switch main
+git pull
+ls servidor/                                 # apache  bind  red  respaldo  vsftpd
+```
+
+**3. Zona horaria** (afecta a todo el servidor; sin esto el cron de las 2:00 a. m. corre a las 8:00 p. m.):
+
+```bash
+sudo timedatectl set-timezone America/Costa_Rica
+timedatectl                                  # Time zone: America/Costa_Rica (CST, -0600)
+```
+
+**4 a 7.** Seguir los `PASOS.md` de cada integrante en el orden de la tabla. El paso del `.env` es del servidor oficial:
+
+```bash
+cd ~/pixelverde
+sed -i 's/^TYPO3_REVERSE_PROXY_SSL=.*/TYPO3_REVERSE_PROXY_SSL=172.30.0.1/' .env
+grep REVERSE_PROXY .env                      # IP y SSL en 172.30.0.1
+docker compose up -d
+```
+
+**8. Comprobar.** Desde **Mint**:
+
+```bash
+dig pixelverde.internal +short               # → 192.168.50.1
+curl -I http://pixelverde.internal           # → 301 hacia https
+curl -skI https://pixelverde.internal        # → HTTP/1.1 200 OK
+curl -m 3 http://192.168.50.1:8080/          # → debe FALLAR (TYPO3 solo en 127.0.0.1)
+```
+
+FTP desde el gestor de archivos de Mint: `ftp://192.168.50.1` como `diana`, intentar borrar un archivo de `orlando` en `compartido` → "Error al eliminar".
+
+En el **servidor**, reiniciar y revisar que todo vuelva solo:
+
+```bash
+sudo reboot
+# al volver:
+systemctl is-active named apache2 vsftpd docker   # active ×4
+docker compose -f ~/pixelverde/docker-compose.yml ps
+findmnt /respaldos && ls -ld /respaldos          # drwx------ root root
+sudo crontab -l                                  # 0 2 * * * /usr/local/sbin/respaldo-pixelverde.sh ...
+```
+
+Si todo responde, apagar la VM y tomar la snapshot **`04-integracion-i2-i4`** (sigue la numeración de `01-instalacion-limpia` y `03-docker-ok`).
+
+**Si algo falla:** captura del error **antes** de corregir, avisar al dueño de esa parte y anotarlo en la tabla de errores de su `PASOS.md`. Si la corrección cambia un archivo del repo, se hace en una rama con PR, y en el servidor se trae con `git pull`.
+
+**Lo que no se sube nunca:** el `.env`, `/etc/ssl/private/pixelverde.key` y el `.crt`, nada de `/respaldos`, ni las claves de las cuentas FTP.
+
 
 
 ---
@@ -516,6 +615,10 @@ git remote set-url origin git@github.com:KarinaMD16/pixelverde.git
 | 5 | Persistencia | `docker compose down` → `docker compose up -d` → el log dice "ya está instalado ... No se reinstala" |
 | 6 | Backend desde Mint (prueba temporal) | En `.env`: `TYPO3_BIND_IP=0.0.0.0` → `docker compose up -d` → Mint: `http://192.168.50.1:8080/typo3/` → volver a `127.0.0.1` |
 | 7 | Prueba de las dos máquinas (con Integrante 5) | Sección 4 en otra compu + `docker compose images` lado a lado |
+| 8 | TYPO3 detrás del proxy HTTPS | `grep REVERSE_PROXY .env` + `docker compose ps` |
+| 9 | Zona horaria del servidor | `timedatectl` |
+| 10 | Segundo disco para respaldos | `lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS` (con `/respaldos` montado) |
+| 11 | BIND resolviendo Internet con *forwarders* | `dig @127.0.0.1 github.com +short` y `dig @127.0.0.1 pixelverde.internal +short` |
 
 Las capturas están en la carpeta de Drive del grupo.
 
@@ -633,3 +736,81 @@ docker exec pixelverde-db sh -c 'mariadb -uroot -p"$MARIADB_ROOT_PASSWORD" -e "S
 ```
 
 Resultado: `10.11.19-MariaDB` y las tablas de TYPO3 (`be_users`, `be_groups`, ...).
+
+### Error 12 — `Your local changes to the following files would be overwritten by merge: PASOS.md`
+
+**Síntoma:** en el servidor oficial, `git pull` se detuvo con `Please commit your changes or stash them before you merge. Aborting`. Por eso no llegaron los archivos de los Integrantes 2 y 4 y falló `sudo cp servidor/bind/db.pixelverde.internal /etc/bind/` con `cannot stat ... No such file or directory`.
+
+**Causa:** el `PASOS.md` se había editado directamente en el servidor, y después se subió a GitHub una versión más nueva del mismo archivo. Git no reemplaza cambios que no se han guardado.
+
+**Solución:** guardar los cambios del servidor en una rama aparte (sin perderlos), volver a `main` y traer lo nuevo:
+
+```bash
+git switch -c cambios-servidor
+git add PASOS.md
+git commit -m "Cambios locales de PASOS.md hechos en el servidor"
+git switch main
+git pull                                     # Fast-forward e6ffce1..e244f7a
+git diff main cambios-servidor -- PASOS.md   # comparar: era un borrador anterior
+git branch -D cambios-servidor               # se descartó: todo estaba en main
+```
+
+**Prevención:** en el servidor oficial no se edita nada del repo, solo `git pull` en `main`. Los cambios se hacen en una rama y entran con un Pull Request (sección 2).
+
+### Error 13 — `ssh: Could not resolve hostname github.com: Temporary failure in name resolution`
+
+**Síntoma:** durante la sesión con Diana, en otra red wifi, `git pull` en el servidor falló. Primero con `Connection reset by 140.82.114.3 port 22` y después con `Could not resolve hostname github.com`. Mint tampoco tenía Internet por nombre.
+
+**Causa:** eran dos problemas de la red, no de GitHub (en githubstatus.com, *Git Operations* estaba operativo):
+
+- La red cortaba el puerto 22 (SSH).
+- BIND resolvía yendo directo a los servidores raíz y esa red no dejaba pasar esas consultas. Se comprobó así:
+
+```bash
+ping -c 3 8.8.8.8                    # responde: hay Internet
+dig @127.0.0.1 github.com +short     # timed out: BIND no resuelve
+dig @8.8.8.8 github.com +short       # 140.82.114.3: Google sí
+```
+
+**Solución:**
+
+1. *Forwarders* en BIND. Dentro de `options { ... };` de `/etc/bind/named.conf.options`, antes de `dnssec-validation auto;`:
+
+```
+        forwarders {
+                8.8.8.8;
+                1.1.1.1;
+        };
+        forward only;
+```
+
+```bash
+sudo named-checkconf                        # no muestra nada
+sudo systemctl restart named
+dig @127.0.0.1 github.com +short            # → 140.82.x.x
+dig @127.0.0.1 pixelverde.internal +short   # → 192.168.50.1 (la zona sigue igual)
+```
+
+Con eso Mint volvió a tener Internet. El propio servidor siguió fallando un rato porque Ubuntu pregunta primero a `systemd-resolved`, que guardaba el DNS de la red anterior:
+
+```bash
+sudo systemctl restart systemd-resolved
+sudo resolvectl flush-caches
+ping -c 2 github.com
+```
+
+2. SSH por el puerto 443, en `~/.ssh/config` del servidor:
+
+```
+Host github.com
+    Hostname ssh.github.com
+    Port 443
+    User git
+```
+
+```bash
+chmod 600 ~/.ssh/config
+ssh -T git@github.com                       # Hi KarinaMD16! ...
+```
+
+**Prevención:** el archivo quedó guardado en `servidor/red/named.conf.options` y se aplica en la sección 8.4, así que un servidor reconstruido ya trae los *forwarders*.
