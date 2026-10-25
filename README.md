@@ -38,7 +38,7 @@ curl -I http://localhost:8080/typo3/
 ```
 
 - Backend: `http://localhost:8080/typo3/` (usuario y clave de `TYPO3_ADMIN_*` en el `.env`).
-- El sitio público se ve con el dominio: `https://pixelverde.internal` (cuando el Integrante 2 tenga DNS + HTTPS). Por `localhost` el frontend puede decir que no hay sitio para ese dominio: es normal, el sitio se creó para `pixelverde.internal`.
+- El sitio público se ve con el dominio: `https://pixelverde.internal` (desde Mint, con el DNS y el HTTPS del servidor oficial). Por `localhost` el frontend puede decir que no hay sitio para ese dominio: es normal, el sitio se creó para `pixelverde.internal`.
 
 ## Estructura
 
@@ -56,7 +56,7 @@ pixelverde/
 │   └── sites/              # (reservada) copia de la configuración del sitio TYPO3
 ├── PASOS.md                # comandos exactos del servidor y contenedores (Integrante 1)
 ├── servidor/               # configuración del Ubuntu Server oficial
-│   ├── red/                # IP fija, DHCP, reenvío y NAT        (Integrante 1)
+│   ├── red/                # IP fija, DHCP, reenvío, NAT y forwarders de BIND (Integrante 1)
 │   ├── bind/               # DNS pixelverde.internal             (Integrante 2)
 │   ├── apache/             # HTTPS + proxy inverso               (Integrante 2)
 │   ├── vsftpd/             # FTP                                 (Integrante 4)
@@ -73,8 +73,9 @@ Las capturas de evidencia van en la carpeta de Google Drive del grupo, no en Git
 
 1. Cada quien trabaja en **su carpeta** y documenta los comandos exactos en un `PASOS.md`.
 2. **Nunca** se suben claves, certificados ni respaldos.
-3. Antes de empezar a trabajar: `git pull`. Al terminar algo que funciona: `git add`, `git commit -m "..."`, `git push`.
-4. Si se cambia `docker-compose.yml` o el `Dockerfile`, debe ser informado al encargado de esa área (Karina).
+3. **Nadie sube directo a `main`.** Se trabaja en una rama (`git switch -c nombre-tema`), se sube con `git push -u origin nombre-tema` y se une a `main` con un Pull Request que revisa Karina. Detalle en la sección 2 de `PASOS.md`.
+4. **En el servidor oficial no se edita nada del repo:** ahí solo `git switch main` y `git pull`. El orden para aplicar las partes de todos está en la sección 8.8 de `PASOS.md`.
+5. Si se cambia `docker-compose.yml` o el `Dockerfile`, debe ser informado al encargado de esa área (Karina).
 
 ## Comandos útiles
 
