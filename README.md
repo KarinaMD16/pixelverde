@@ -45,6 +45,7 @@ curl -I http://localhost:8080/typo3/
 ```
 pixelverde/
 ├── docker-compose.yml      # los dos servicios, volúmenes con nombre, red
+├── docker-compose.ha.yml   # bono: segunda copia de TYPO3 (typo3-2)
 ├── Dockerfile              # imagen de TYPO3 (PHP 8.4 + Apache + TYPO3 14.3.9)
 ├── .env.example            # plantilla de claves (el .env real NO se sube)
 ├── config/
@@ -59,12 +60,14 @@ pixelverde/
 │   ├── red/                # IP fija, DHCP, reenvío, NAT y forwarders de BIND (Integrante 1)
 │   ├── bind/               # DNS pixelverde.internal             (Integrante 2)
 │   ├── apache/             # HTTPS + proxy inverso               (Integrante 2)
+│   │   └── pixelverde-ssl-ha.conf  # bono: balanceador entre los dos TYPO3
 │   ├── vsftpd/             # FTP                                 (Integrante 4)
 │   └── respaldo/           # script de respaldo + cron           (Integrante 4)
 └── docs/
     ├── decisiones.md       # justificación de versiones y diseño  (Integrante 1)
     ├── PASOS-typo3.md      # contenido y usuarios de TYPO3         (Integrante 3)
-    └── PASOS-nativo.md     # comparación nativo vs. contenedores   (Integrante 5)
+    ├──── PASOS-nativo.md     # comparación nativo vs. contenedores   (Integrante 5)
+    └── PASOS-bono.md       # bono: alta disponibilidad             (Integrantes 1, 2 y 5)
 ```
 
 Las capturas de evidencia van en la carpeta de Google Drive del grupo, no en Git.
