@@ -1,0 +1,272 @@
+/* =============================================================================
+   Estudio Pixel Verde — estilos propios sobre el tema Camino de TYPO3 14
+   Dueña de este archivo: Karina (repo: tema/pixelverde.css)
+
+   Camino arma todo su diseño con variables CSS (--color-..., --headline-...).
+   Este archivo cambia esas variables y agrega unos pocos detalles, sin tocar
+   los archivos del tema. Se carga con TypoScript (Sites → TypoScript):
+      page.includeCSS.pixelverde = fileadmin/tema/pixelverde.css
+
+   TYPO3 lo pone ANTES del CSS de Camino. Por eso cada regla empieza con
+   body[class*="theme-"]: así pesa más que la de Camino y gana igual.
+
+   Funciona con cualquiera de los 4 esquemas de color de Camino: este archivo
+   los reemplaza por la paleta Pixel Verde.
+   ============================================================================= */
+
+
+/* -----------------------------------------------------------------------------
+   1. Paleta Pixel Verde
+   "body[class*=theme-]" pesa más que ".theme-ocean-breeze" y similares,
+   así que gana sin importar qué esquema esté elegido en el sitio.
+   Contraste comprobado (WCAG AA): verde sobre blanco 5,3:1 · blanco sobre
+   verde oscuro 16:1 · menta sobre verde oscuro 10,8:1.
+   ----------------------------------------------------------------------------- */
+body[class*="theme-"] {
+    --color-primary-100: #0F7A55;   /* verde principal: botones y enlaces */
+    --color-primary-75:  #6EE7B7;   /* menta: acentos sobre fondos oscuros */
+
+    --color-neutral-0:  #FFFFFF;
+    --color-neutral-10: #F1F7F3;    /* fondo claro de secciones */
+    --color-neutral-20: #DDEAE2;    /* bordes suaves */
+    --color-neutral-30: #C3D5CA;
+    --color-neutral-40: #A3BAAD;
+    --color-neutral-50: #87A093;
+    --color-neutral-60: #5F776A;
+    --color-neutral-70: #3C5247;    /* texto secundario */
+    --color-neutral-80: #10231B;    /* verde bosque: encabezado, pie y secciones oscuras */
+    --color-neutral-90: #0B1712;    /* texto principal */
+
+    --pv-verde-hover: #0B6346;
+    --pv-sombra: 0 1px 2px rgba(16, 35, 27, 0.06), 0 8px 24px rgba(16, 35, 27, 0.08);
+    --pv-sombra-hover: 0 2px 4px rgba(16, 35, 27, 0.08), 0 16px 40px rgba(16, 35, 27, 0.14);
+
+    /* Botones: el hover se queda en verde (Camino lo pasaba a gris/café) */
+    --button-primary-color-hover: var(--pv-verde-hover);
+    --button-primary-color-focus: var(--pv-verde-hover);
+    --button-primary-color-pressed: var(--pv-verde-hover);
+    --button-primary-border-color-hover: var(--pv-verde-hover);
+    --button-primary-border-color-pressed: var(--pv-verde-hover);
+    --link-color-hover: var(--pv-verde-hover);
+
+    /* -------------------------------------------------------------------------
+       2. Tipografía: títulos sin serifa, más modernos
+       Open Sans ya viene dentro de Camino (no se descarga nada de Internet).
+       Camino calcula cada tamaño (large, medium, small) a partir de
+       --headline-family en :root, así que hay que cambiar los tres.
+       ------------------------------------------------------------------------- */
+    --pv-titulos: "Open Sans", system-ui, sans-serif;
+
+    --headline-large-family: var(--pv-titulos);
+    --headline-large-weight: 700;
+    --headline-large-letter-spacing: -0.025em;
+    --headline-large-line-height: 1.08;
+
+    --headline-medium-family: var(--pv-titulos);
+    --headline-medium-weight: 700;
+    --headline-medium-letter-spacing: -0.02em;
+    --headline-medium-line-height: 1.12;
+
+    --headline-small-family: var(--pv-titulos);
+    --headline-small-weight: 700;
+    --headline-small-letter-spacing: -0.015em;
+    --headline-small-line-height: 1.15;
+
+    /* Tamaños de títulos en celular (en escritorio, ver el @media de abajo) */
+    --headline-large-size: 36px;
+    --headline-medium-size: 28px;
+    --headline-small-size: 22px;
+
+    /* 3. Esquinas un poco más chicas: se ven más actuales */
+    --corners-m: 14px;
+    --corners-l: 18px;
+
+    /* Tarjetas blancas con borde, en vez de bloques de color */
+    --textmedia-teaser-background: var(--color-neutral-0);
+}
+
+
+/* Tamaños de títulos en pantallas grandes */
+@media (min-width: 1024px) {
+    body[class*="theme-"] {
+        --headline-large-size: 56px;
+        --headline-medium-size: 38px;
+        --headline-small-size: 24px;
+    }
+}
+
+
+/* -----------------------------------------------------------------------------
+   4. Encabezado: verde bosque, fijo arriba al hacer scroll
+   ----------------------------------------------------------------------------- */
+body[class*="theme-"] .header {
+    background: var(--color-neutral-80);
+    position: sticky;
+    top: 0;
+    border-bottom: 1px solid rgba(110, 231, 183, 0.18);
+}
+
+@media (min-width: 1280px) {
+    /* La rayita debajo del menú activo pasa a menta */
+    body[class*="theme-"] .header__nav-item:hover:before,
+    body[class*="theme-"] .header__nav-item--active:before {
+        background-color: var(--color-primary-75) !important;
+    }
+    body[class*="theme-"] .header__language-button {
+        border-color: rgba(110, 231, 183, 0.35);
+    }
+}
+
+
+/* -----------------------------------------------------------------------------
+   5. Hero de la portada
+   - Fondo con una cuadrícula de "pixeles" muy suave.
+   - El corte diagonal de la foto pasa a ser una escalera de pixeles.
+   ----------------------------------------------------------------------------- */
+body[class*="theme-"] .hero {
+    background-color: var(--color-neutral-10);
+    background-image: radial-gradient(rgba(15, 122, 85, 0.14) 1.2px, transparent 1.6px);
+    background-size: 22px 22px;
+    /* celular: escalones en el borde de abajo de la foto */
+    --picture-clip-path: polygon(0 0, 100% 0, 100% 82%,
+        80% 82%, 80% 86%, 60% 86%, 60% 90%, 40% 90%, 40% 94%, 20% 94%, 20% 98%, 0 98%);
+}
+
+@media (min-width: 768px) {
+    body[class*="theme-"] .hero {
+        /* escritorio: escalones en el borde izquierdo de la foto */
+        --picture-clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 100%,
+            0 80%, 3% 80%, 3% 60%, 6% 60%, 6% 40%, 9% 40%, 9% 20%, 12% 20%);
+    }
+}
+
+body[class*="theme-"] .hero .headline--large {
+    color: var(--color-neutral-80);
+}
+
+
+/* -----------------------------------------------------------------------------
+   6. Títulos de sección con un "pixel" de acento
+   ----------------------------------------------------------------------------- */
+body[class*="theme-"] .textpic__text > .headline:first-child,
+body[class*="theme-"] .textmedia-teaser-grid__intro > .headline:first-child {
+    position: relative;
+    padding-top: 18px;
+}
+
+body[class*="theme-"] .textpic__text > .headline:first-child::before,
+body[class*="theme-"] .textmedia-teaser-grid__intro > .headline:first-child::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    background: var(--color-primary-100);
+    box-shadow: 14px 0 0 var(--color-primary-75);
+}
+
+body[class*="theme-"] [class*="--bg-80"] .textpic__text > .headline:first-child::before,
+body[class*="theme-"] [class*="--bg-80"] .textmedia-teaser-grid__intro > .headline:first-child::before,
+body[class*="theme-"] [class*="--bg-100"] .textpic__text > .headline:first-child::before,
+body[class*="theme-"] [class*="--bg-100"] .textmedia-teaser-grid__intro > .headline:first-child::before {
+    background: var(--color-primary-75);
+    box-shadow: 14px 0 0 rgba(255, 255, 255, 0.5);
+}
+
+
+/* -----------------------------------------------------------------------------
+   7. Tarjetas de proyectos (Text-Media Teaser): borde, sombra y se elevan
+   ----------------------------------------------------------------------------- */
+body[class*="theme-"] .textmedia-teaser {
+    border: 1px solid var(--color-neutral-20);
+    box-shadow: var(--pv-sombra);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+body[class*="theme-"] .textmedia-teaser--link:hover,
+body[class*="theme-"] .textmedia-teaser--link:focus-within {
+    transform: translateY(-4px);
+    box-shadow: var(--pv-sombra-hover);
+    border-color: var(--color-neutral-30);
+}
+
+/* En las secciones oscuras, las tarjetas sin borde (se ve más limpio) */
+body[class*="theme-"] [class*="--bg-80"] .textmedia-teaser,
+body[class*="theme-"] [class*="--bg-100"] .textmedia-teaser {
+    border-color: transparent;
+}
+
+/* Fotos de las tarjetas con la misma proporción: la grilla queda pareja */
+body[class*="theme-"] .textmedia-teaser .image {
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+}
+
+
+/* -----------------------------------------------------------------------------
+   8. Imágenes de contenido (Text & Media): esquinas y sombra suave
+   ----------------------------------------------------------------------------- */
+body[class*="theme-"] .textpic .image {
+    box-shadow: var(--pv-sombra);
+}
+
+
+/* -----------------------------------------------------------------------------
+   9. Botones y enlaces
+   ----------------------------------------------------------------------------- */
+body[class*="theme-"] .button__content {
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+body[class*="theme-"] .button:hover .button__content {
+    transform: translateY(-1px);
+}
+
+body[class*="theme-"] .rich-text a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+/* Foco visible para quien navega con teclado */
+body[class*="theme-"] a:focus-visible,
+body[class*="theme-"] button:focus-visible {
+    outline: 3px solid var(--color-primary-75);
+    outline-offset: 2px;
+}
+
+body[class*="theme-"] ::selection {
+    background: var(--color-primary-75);
+    color: var(--color-neutral-90);
+}
+
+
+/* -----------------------------------------------------------------------------
+   10. Pie de página: el mismo verde bosque del encabezado
+   ----------------------------------------------------------------------------- */
+body[class*="theme-"] .component--page-footer {
+    --background-color: var(--color-neutral-80);
+    border-top: 4px solid var(--color-primary-100);
+}
+
+body[class*="theme-"] .footer__meta {
+    border-top-color: rgba(110, 231, 183, 0.25);
+    color: var(--color-neutral-30);
+}
+
+
+/* -----------------------------------------------------------------------------
+   11. Quien prefiere menos movimiento (accesibilidad): sin animaciones
+   ----------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    body[class*="theme-"] .textmedia-teaser,
+    body[class*="theme-"] .button__content {
+        transition: none;
+    }
+    body[class*="theme-"] .textmedia-teaser--link:hover,
+    body[class*="theme-"] .textmedia-teaser--link:focus-within,
+    body[class*="theme-"] .button:hover .button__content {
+        transform: none;
+    }
+}

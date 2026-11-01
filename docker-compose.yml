@@ -83,6 +83,7 @@ services:
       - datos_fileadmin:/var/www/html/fileadmin     # imágenes y archivos del portafolio
       - datos_typo3conf:/var/www/html/typo3conf     # settings.php, sitios, extensiones
       - datos_typo3temp:/var/www/html/typo3temp     # caché, logs y temporales
+      - ./tema:/var/www/html/fileadmin/tema:ro       # CSS propio del sitio, viene del repo (tema/)
     networks:
       - interna
 
