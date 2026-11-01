@@ -95,7 +95,7 @@ gunzip -c "$RESPALDO_DB" | docker exec -i "$CONTENEDOR_DB" sh -c \
 if [ -n "$RESPALDO_ARCHIVOS" ]; then
     log "Restaurando fileadmin y typo3conf desde $RESPALDO_ARCHIVOS ..."
     docker exec -i "$CONTENEDOR_WEB" tar -xzf - -C /var/www/html --exclude='fileadmin/tema' < "$RESPALDO_ARCHIVOS"
-    docker exec "$CONTENEDOR_WEB" chown -R www-data:www-data /var/www/html/fileadmin /var/www/html/typo3conf
+    docker exec "$CONTENEDOR_WEB" find /var/www/html/fileadmin /var/www/html/typo3conf -path /var/www/html/fileadmin/tema -prune -o -exec chown www-data:www-data {} +
 fi
 
 # --- 5. Cachés y comprobación ------------------------------------------------
